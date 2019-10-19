@@ -18,14 +18,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
@@ -43,100 +36,117 @@ import static java.util.stream.Collectors.toMap;
  */
 public enum BuildProcessor implements Processor {
 
-    compile(Action.compile,
-            (project, psiFiles) -> () -> {
-                if (!SaveActionManager.getInstance().isCompilingAvailable()) {
-                    return;
-                }
-                CompilerManager.getInstance(project).compile(toVirtualFiles(psiFiles), null);
-            }),
+	compile(Action.compile,
+			(project, psiFiles) -> () -> {
+				if (!SaveActionManager.getInstance().isCompilingAvailable()) {
+					return;
+				}
+				CompilerManager.getInstance(project).compile(toVirtualFiles(psiFiles), null);
+			}),
 
-    reload(Action.reload,
-            (project, psiFiles) -> () -> {
-                if (!SaveActionManager.getInstance().isCompilingAvailable()) {
-                    return;
-                }
-                DebuggerManagerEx debuggerManager = DebuggerManagerEx.getInstanceEx(project);
-                DebuggerSession session = debuggerManager.getContext().getDebuggerSession();
-                if (session != null && session.isAttached()) {
-                    boolean compileEnabled = SaveActionManager.getInstance()
-                            .getStorage(project).isEnabled(Action.compile);
-                    boolean compileHotswapSetting = DebuggerSettings.getInstance().COMPILE_BEFORE_HOTSWAP;
-                    boolean compileBeforeHotswap = compileEnabled ? false : compileHotswapSetting;
-                    HotSwapUI.getInstance(project).reloadChangedClasses(session, compileBeforeHotswap);
-                }
-            }),
+	reload(Action.reload,
+			(project, psiFiles) -> () -> {
+				if (!SaveActionManager.getInstance().isCompilingAvailable()) {
+					return;
+				}
+				DebuggerManagerEx debuggerManager = DebuggerManagerEx.getInstanceEx(project);
+				DebuggerSession session = debuggerManager.getContext().getDebuggerSession();
+				if (session == null || !session.isAttached()) {
+					return;
+				}
 
-    executeAction(Action.executeAction,
-            (project, psiFiles) -> () -> {
-                Map<Integer, QuickList> quickListsIds = Arrays
-                        .stream(QuickListsManager.getInstance().getAllQuickLists())
-                        .collect(toMap(QuickList::hashCode, identity()));
-                List<QuickList> quickLists = SaveActionManager.getInstance().getStorage(project)
-                        .getQuickLists().stream()
-                        .map(Integer::valueOf)
-                        .map(quickListsIds::get)
-                        .filter(Objects::nonNull)
-                        .collect(toList());
-                for (QuickList quickList : quickLists) {
-                    String[] actionIds = quickList.getActionIds();
-                    for (String actionId : actionIds) {
-                        AnAction action = ActionManager.getInstance().getAction(actionId);
-                        Map<String, Object> data = new HashMap<>();
-                        data.put(PROJECT.getName(), project);
-                        data.put(EDITOR.getName(), FileEditorManager.getInstance(project).getSelectedTextEditor());
-                        DataContext dataContext = getSimpleContext(data, null);
-                        AnActionEvent event = AnActionEvent.createFromAnAction(action, null, UNKNOWN, dataContext);
-                        action.actionPerformed(event);
-                    }
-                }
-            }) {
-        @Override
-        public SaveCommand getSaveCommand(Project project, Set<PsiFile> psiFiles) {
-            return new SaveReadCommand(project, psiFiles, getModes(), getAction(), getCommand());
-        }
-    },
+				if (SaveActionManager.getInstance().getStorage(project).isEnabled(Action.forceCompile)) {
+					HotSwapUI.getInstance(project).reloadChangedClasses(session, true);
+					System.out.println("Reloaded as should be.");
+					return;
+				}
 
-    ;
+				boolean compileEnabled = SaveActionManager.getInstance()
+						.getStorage(project).isEnabled(Action.compile);
+				boolean compileHotswapSetting = DebuggerSettings.getInstance().COMPILE_BEFORE_HOTSWAP;
+				boolean compileBeforeHotswap = compileEnabled && compileHotswapSetting;
+				System.out.println("compileEnabled: " + compileEnabled + " compileHotSwapSetting: " + compileHotswapSetting + " -> compileBeforeHotswap: " + compileBeforeHotswap);
+				HotSwapUI.getInstance(project).reloadChangedClasses(session, compileBeforeHotswap);
+			}),
 
-    private final Action action;
-    private final BiFunction<Project, PsiFile[], Runnable> command;
+	executeAction(Action.executeAction,
+			(project, psiFiles) -> () -> {
+				Map<Integer, QuickList> quickListsIds = Arrays
+						.stream(QuickListsManager.getInstance().getAllQuickLists())
+						.collect(toMap(QuickList::hashCode, identity()));
+				List<QuickList> quickLists = SaveActionManager.getInstance().getStorage(project)
+						.getQuickLists().stream()
+						.map(Integer::valueOf)
+						.map(quickListsIds::get)
+						.filter(Objects::nonNull)
+						.collect(toList());
+				for (QuickList quickList : quickLists) {
+					String[] actionIds = quickList.getActionIds();
+					for (String actionId : actionIds) {
+						AnAction action = ActionManager.getInstance().getAction(actionId);
+						Map<String, Object> data = new HashMap<>();
+						data.put(PROJECT.getName(), project);
+						data.put(EDITOR.getName(), FileEditorManager.getInstance(project).getSelectedTextEditor());
+						DataContext dataContext = getSimpleContext(data, null);
+						AnActionEvent event = AnActionEvent.createFromAnAction(action, null, UNKNOWN, dataContext);
+						action.actionPerformed(event);
+					}
+				}
+			}) {
+		@Override
+		public SaveCommand getSaveCommand(Project project, Set<PsiFile> psiFiles) {
+			return new SaveReadCommand(project, psiFiles, getModes(), getAction(), getCommand());
+		}
+	},
+	;
 
-    BuildProcessor(Action action, BiFunction<Project, PsiFile[], Runnable> command) {
-        this.action = action;
-        this.command = command;
-    }
+	private static boolean forceRecompile = false;
+	private final Action action;
+	private final BiFunction<Project, PsiFile[], Runnable> command;
 
-    @Override
-    public Action getAction() {
-        return action;
-    }
+	BuildProcessor(Action action, BiFunction<Project, PsiFile[], Runnable> command) {
+		this.action = action;
+		this.command = command;
+	}
 
-    @Override
-    public Set<ExecutionMode> getModes() {
-        return EnumSet.allOf(ExecutionMode.class);
-    }
+	@Override
+	public Action getAction() {
+		return action;
+	}
 
-    @Override
-    public int getOrder() {
-        return 2;
-    }
+	@Override
+	public Set<ExecutionMode> getModes() {
+		return EnumSet.allOf(ExecutionMode.class);
+	}
 
-    @Override
-    public SaveCommand getSaveCommand(Project project, Set<PsiFile> psiFiles) {
-        return new SaveWriteCommand(project, psiFiles, getModes(), getAction(), getCommand());
-    }
+	@Override
+	public int getOrder() {
+		return 2;
+	}
 
-    public BiFunction<Project, PsiFile[], Runnable> getCommand() {
-        return command;
-    }
+	@Override
+	public SaveCommand getSaveCommand(Project project, Set<PsiFile> psiFiles) {
+		return new SaveWriteCommand(project, psiFiles, getModes(), getAction(), getCommand());
+	}
 
-    public static Optional<Processor> getProcessorForAction(Action action) {
-        return stream().filter(processor -> processor.getAction().equals(action)).findFirst();
-    }
+	public BiFunction<Project, PsiFile[], Runnable> getCommand() {
+		return command;
+	}
 
-    public static Stream<Processor> stream() {
-        return Arrays.stream(values());
-    }
+	public static Optional<Processor> getProcessorForAction(Action action) {
+		return stream().filter(processor -> processor.getAction().equals(action)).findFirst();
+	}
+
+	public static Stream<Processor> stream() {
+		return Arrays.stream(values());
+	}
+
+	public static boolean isForceRecompile() {
+		return forceRecompile;
+	}
+
+	public static void setForceRecompile(boolean forceRecompile) {
+		BuildProcessor.forceRecompile = forceRecompile;
+	}
 
 }

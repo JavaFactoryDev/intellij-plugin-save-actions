@@ -4,10 +4,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.dubreuia.model.ActionType.activation;
-import static com.dubreuia.model.ActionType.build;
-import static com.dubreuia.model.ActionType.global;
-import static com.dubreuia.model.ActionType.java;
+import static com.dubreuia.model.ActionType.*;
 import static java.util.stream.Collectors.toSet;
 
 public enum Action {
@@ -48,6 +45,8 @@ public enum Action {
 
     reload("Reload files in running debugger (using \"Run > Reload Changed Classes\")",
             build, false),
+
+    forceCompile("Force compile", build, false),
 
     executeAction("Execute an action (using quick lists at \"File > Settings > Appearance & Behavior > Quick Lists\"",
             build, false),

@@ -23,7 +23,7 @@ apply plugin: 'org.jetbrains.intellij'
 intellij {
     version 'LATEST-EAP-SNAPSHOT'
     plugins = ['java', 'coverage']
-    pluginName 'Save Actions'
+    pluginName 'Save Actions - Forked4Mineacedemy'
     // Do not touch the plugin.xml file
     updateSinceUntilBuild false
 }
