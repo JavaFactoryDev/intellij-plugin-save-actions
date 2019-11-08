@@ -18,7 +18,14 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
@@ -57,15 +64,13 @@ public enum BuildProcessor implements Processor {
 
 				if (SaveActionManager.getInstance().getStorage(project).isEnabled(Action.forceCompile)) {
 					HotSwapUI.getInstance(project).reloadChangedClasses(session, true);
-					System.out.println("Reloaded as should be.");
 					return;
 				}
 
 				boolean compileEnabled = SaveActionManager.getInstance()
 						.getStorage(project).isEnabled(Action.compile);
 				boolean compileHotswapSetting = DebuggerSettings.getInstance().COMPILE_BEFORE_HOTSWAP;
-				boolean compileBeforeHotswap = compileEnabled && compileHotswapSetting;
-				System.out.println("compileEnabled: " + compileEnabled + " compileHotSwapSetting: " + compileHotswapSetting + " -> compileBeforeHotswap: " + compileBeforeHotswap);
+				boolean compileBeforeHotswap = !compileEnabled && compileHotswapSetting;
 				HotSwapUI.getInstance(project).reloadChangedClasses(session, compileBeforeHotswap);
 			}),
 
