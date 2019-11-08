@@ -43,115 +43,115 @@ import static java.util.stream.Collectors.toMap;
  */
 public enum BuildProcessor implements Processor {
 
-	compile(Action.compile,
-			(project, psiFiles) -> () -> {
-				if (!SaveActionManager.getInstance().isCompilingAvailable()) {
-					return;
-				}
-				CompilerManager.getInstance(project).compile(toVirtualFiles(psiFiles), null);
-			}),
+    compile(Action.compile,
+            (project, psiFiles) -> () -> {
+                if (!SaveActionManager.getInstance().isCompilingAvailable()) {
+                    return;
+                }
+                CompilerManager.getInstance(project).compile(toVirtualFiles(psiFiles), null);
+            }),
 
-	reload(Action.reload,
-			(project, psiFiles) -> () -> {
-				if (!SaveActionManager.getInstance().isCompilingAvailable()) {
-					return;
-				}
-				DebuggerManagerEx debuggerManager = DebuggerManagerEx.getInstanceEx(project);
-				DebuggerSession session = debuggerManager.getContext().getDebuggerSession();
-				if (session == null || !session.isAttached()) {
-					return;
-				}
+    reload(Action.reload,
+            (project, psiFiles) -> () -> {
+                if (!SaveActionManager.getInstance().isCompilingAvailable()) {
+                    return;
+                }
+                DebuggerManagerEx debuggerManager = DebuggerManagerEx.getInstanceEx(project);
+                DebuggerSession session = debuggerManager.getContext().getDebuggerSession();
+                if (session == null || !session.isAttached()) {
+                    return;
+                }
 
-				if (SaveActionManager.getInstance().getStorage(project).isEnabled(Action.forceCompile)) {
-					HotSwapUI.getInstance(project).reloadChangedClasses(session, true);
-					return;
-				}
+                if (SaveActionManager.getInstance().getStorage(project).isEnabled(Action.forceCompile)) {
+                    HotSwapUI.getInstance(project).reloadChangedClasses(session, true);
+                    return;
+                }
 
-				boolean compileEnabled = SaveActionManager.getInstance()
-						.getStorage(project).isEnabled(Action.compile);
-				boolean compileHotswapSetting = DebuggerSettings.getInstance().COMPILE_BEFORE_HOTSWAP;
-				boolean compileBeforeHotswap = !compileEnabled && compileHotswapSetting;
-				HotSwapUI.getInstance(project).reloadChangedClasses(session, compileBeforeHotswap);
-			}),
+                boolean compileEnabled = SaveActionManager.getInstance()
+                        .getStorage(project).isEnabled(Action.compile);
+                boolean compileHotswapSetting = DebuggerSettings.getInstance().COMPILE_BEFORE_HOTSWAP;
+                boolean compileBeforeHotswap = !compileEnabled && compileHotswapSetting;
+                HotSwapUI.getInstance(project).reloadChangedClasses(session, compileBeforeHotswap);
+            }),
 
-	executeAction(Action.executeAction,
-			(project, psiFiles) -> () -> {
-				Map<Integer, QuickList> quickListsIds = Arrays
-						.stream(QuickListsManager.getInstance().getAllQuickLists())
-						.collect(toMap(QuickList::hashCode, identity()));
-				List<QuickList> quickLists = SaveActionManager.getInstance().getStorage(project)
-						.getQuickLists().stream()
-						.map(Integer::valueOf)
-						.map(quickListsIds::get)
-						.filter(Objects::nonNull)
-						.collect(toList());
-				for (QuickList quickList : quickLists) {
-					String[] actionIds = quickList.getActionIds();
-					for (String actionId : actionIds) {
-						AnAction action = ActionManager.getInstance().getAction(actionId);
-						Map<String, Object> data = new HashMap<>();
-						data.put(PROJECT.getName(), project);
-						data.put(EDITOR.getName(), FileEditorManager.getInstance(project).getSelectedTextEditor());
-						DataContext dataContext = getSimpleContext(data, null);
-						AnActionEvent event = AnActionEvent.createFromAnAction(action, null, UNKNOWN, dataContext);
-						action.actionPerformed(event);
-					}
-				}
-			}) {
-		@Override
-		public SaveCommand getSaveCommand(Project project, Set<PsiFile> psiFiles) {
-			return new SaveReadCommand(project, psiFiles, getModes(), getAction(), getCommand());
-		}
-	},
-	;
+    executeAction(Action.executeAction,
+            (project, psiFiles) -> () -> {
+                Map<Integer, QuickList> quickListsIds = Arrays
+                        .stream(QuickListsManager.getInstance().getAllQuickLists())
+                        .collect(toMap(QuickList::hashCode, identity()));
+                List<QuickList> quickLists = SaveActionManager.getInstance().getStorage(project)
+                        .getQuickLists().stream()
+                        .map(Integer::valueOf)
+                        .map(quickListsIds::get)
+                        .filter(Objects::nonNull)
+                        .collect(toList());
+                for (QuickList quickList : quickLists) {
+                    String[] actionIds = quickList.getActionIds();
+                    for (String actionId : actionIds) {
+                        AnAction action = ActionManager.getInstance().getAction(actionId);
+                        Map<String, Object> data = new HashMap<>();
+                        data.put(PROJECT.getName(), project);
+                        data.put(EDITOR.getName(), FileEditorManager.getInstance(project).getSelectedTextEditor());
+                        DataContext dataContext = getSimpleContext(data, null);
+                        AnActionEvent event = AnActionEvent.createFromAnAction(action, null, UNKNOWN, dataContext);
+                        action.actionPerformed(event);
+                    }
+                }
+            }) {
+        @Override
+        public SaveCommand getSaveCommand(Project project, Set<PsiFile> psiFiles) {
+            return new SaveReadCommand(project, psiFiles, getModes(), getAction(), getCommand());
+        }
+    },
+    ;
 
-	private static boolean forceRecompile = false;
-	private final Action action;
-	private final BiFunction<Project, PsiFile[], Runnable> command;
+    private static boolean forceRecompile = false;
+    private final Action action;
+    private final BiFunction<Project, PsiFile[], Runnable> command;
 
-	BuildProcessor(Action action, BiFunction<Project, PsiFile[], Runnable> command) {
-		this.action = action;
-		this.command = command;
-	}
+    BuildProcessor(Action action, BiFunction<Project, PsiFile[], Runnable> command) {
+        this.action = action;
+        this.command = command;
+    }
 
-	@Override
-	public Action getAction() {
-		return action;
-	}
+    @Override
+    public Action getAction() {
+        return action;
+    }
 
-	@Override
-	public Set<ExecutionMode> getModes() {
-		return EnumSet.allOf(ExecutionMode.class);
-	}
+    @Override
+    public Set<ExecutionMode> getModes() {
+        return EnumSet.allOf(ExecutionMode.class);
+    }
 
-	@Override
-	public int getOrder() {
-		return 2;
-	}
+    @Override
+    public int getOrder() {
+        return 2;
+    }
 
-	@Override
-	public SaveCommand getSaveCommand(Project project, Set<PsiFile> psiFiles) {
-		return new SaveWriteCommand(project, psiFiles, getModes(), getAction(), getCommand());
-	}
+    @Override
+    public SaveCommand getSaveCommand(Project project, Set<PsiFile> psiFiles) {
+        return new SaveWriteCommand(project, psiFiles, getModes(), getAction(), getCommand());
+    }
 
-	public BiFunction<Project, PsiFile[], Runnable> getCommand() {
-		return command;
-	}
+    public BiFunction<Project, PsiFile[], Runnable> getCommand() {
+        return command;
+    }
 
-	public static Optional<Processor> getProcessorForAction(Action action) {
-		return stream().filter(processor -> processor.getAction().equals(action)).findFirst();
-	}
+    public static Optional<Processor> getProcessorForAction(Action action) {
+        return stream().filter(processor -> processor.getAction().equals(action)).findFirst();
+    }
 
-	public static Stream<Processor> stream() {
-		return Arrays.stream(values());
-	}
+    public static Stream<Processor> stream() {
+        return Arrays.stream(values());
+    }
 
-	public static boolean isForceRecompile() {
-		return forceRecompile;
-	}
+    public static boolean isForceRecompile() {
+        return forceRecompile;
+    }
 
-	public static void setForceRecompile(boolean forceRecompile) {
-		BuildProcessor.forceRecompile = forceRecompile;
-	}
+    public static void setForceRecompile(boolean forceRecompile) {
+        BuildProcessor.forceRecompile = forceRecompile;
+    }
 
 }
