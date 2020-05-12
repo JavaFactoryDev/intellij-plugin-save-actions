@@ -1,105 +1,95 @@
-<?xml version="1.0" encoding="utf-8"?>
-
 <idea-plugin>
+    <id>de.leonhard</id>
+    <name>Save Actions Reborn</name>
+    <version>1.6.1</version>
+    <vendor email="JavaFactoryDev@Gmail.com" url="https://www.github.com/JavaFactoryDev">Leonhard
+        Solbach
+    </vendor>
+    <description>
+        &lt;p&gt;A maintained fork of SaveActions. Supports configurable, Eclipse like, save
+        actions,
+        including
+        "optimize imports", "reformat code", "rearrange code", "compile file" and some quick fixes
+        for
+        Java like "add /
+        remove 'this' qualifier", etc. The plugin executes the configured actions when the file is
+        synchronised (or
+        saved) on disk.&lt;/p&gt;
 
-    <id>com.dubreuia</id>
-    <name>Save Actions</name>
-    <version>1.6.0</version>
-    <vendor email="dubreuil.alex@gmail.com" url="https://www.github.com/dubreuia">Alexandre DuBreuil</vendor>
+        &lt;p&gt;&lt;strong&gt;Features&lt;/strong&gt;&lt;/p&gt;
 
-    <description><![CDATA[
-<p>Supports configurable, Eclipse like, save actions, including "optimize imports", "reformat code", "rearrange code", "compile file" and some quick fixes for Java like "add / remove 'this' qualifier", etc. The plugin executes the configured actions when the file is synchronised (or saved) on disk.</p>
+        &lt;ul&gt;
+        &lt;li&gt;Optimize imports&lt;/li&gt;
+        &lt;li&gt;Run on file save, shortcut, batch (or a combination)&lt;/li&gt;
+        &lt;li&gt;Run on multiple files by choosing a scope&lt;/li&gt;
+        &lt;li&gt;Reformat code (whole file or only changed text)&lt;/li&gt;
+        &lt;li&gt;Rearrange code (reorder methods, fields, etc.)&lt;/li&gt;
+        &lt;li&gt;Include / exclude files with regex support&lt;/li&gt;
+        &lt;li&gt;Works on any file type (Java, Python, XML, etc.)&lt;/li&gt;
+        &lt;li&gt;Uses a settings file per project you can commit&lt;/li&gt;
+        &lt;li&gt;Available keymaps and actions for activation&lt;/li&gt;
+        &lt;li&gt;Eclipse configuration file `.epf` support (Java IDE only)&lt;/li&gt;
+        &lt;li&gt;Automatically fix Java inspections (Java IDEA only)&lt;/li&gt;
+        &lt;/ul&gt;
 
-<p><strong>Features</strong></p>
+        &lt;p&gt;&lt;strong&gt;Compatibility&lt;/strong&gt;&lt;/p&gt;
 
-<ul>
-  <li>Optimize imports</li>
-  <li>Run on file save, shortcut, batch (or a combination)</li>
-  <li>Run on multiple files by choosing a scope</li>
-  <li>Reformat code (whole file or only changed text)</li>
-  <li>Rearrange code (reorder methods, fields, etc.)</li>
-  <li>Include / exclude files with regex support</li>
-  <li>Works on any file type (Java, Python, XML, etc.)</li>
-  <li>Uses a settings file per project you can commit</li>
-  <li>Available keymaps and actions for activation</li>
-  <li>Eclipse configuration file `.epf` support (Java IDE only)</li>
-  <li>Automatically fix Java inspections (Java IDEA only)</li>
-</ul>
+        &lt;ul&gt;
+        &lt;li&gt;Intellij IDEA&lt;/li&gt;
+        &lt;li&gt;PyCharm&lt;/li&gt;
+        &lt;li&gt;PHPStorm&lt;/li&gt;
+        &lt;li&gt;AndroidStudio&lt;/li&gt;
+        &lt;li&gt;WebStorm&lt;/li&gt;
+        &lt;li&gt;RubyMine&lt;/li&gt;
+        &lt;li&gt;CLion&lt;/li&gt;
+        &lt;/ul&gt;
 
-<p><strong>Compatibility</strong></p>
+        &lt;p&gt;&lt;strong&gt;Documentation&lt;/strong&gt;&lt;/p&gt;
 
-<ul>
-  <li>Intellij IDEA</li>
-  <li>PyCharm</li>
-  <li>PHPStorm</li>
-  <li>AndroidStudio</li>
-  <li>WebStorm</li>
-  <li>RubyMine</li>
-  <li>CLion</li>
-</ul>
+        &lt;ul&gt;
 
-<p><strong>Documentation</strong></p>
+        &lt;li&gt;&lt;a href="https://github.com/JavaFactoryDev/intellij-plugin-save-actions"&gt;Github
+        README&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href="https://github.com/JavaFactoryDev/intellij-plugin-save-actions"&gt;Github
+        issues&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+    </description>
+    <change-notes>
+        &lt;ul&gt;
+        &lt;li&gt;Release notes: &lt;a
+        href="https://github.com/JavaFactoryDev/intellij-plugin-save-actions/releases"&gt;https://github.com/JavaFactoryDev/intellij-plugin-save-actions/releases/tag/v1.6.0&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
 
-<ul>
-  <li><a href="https://plugins.jetbrains.com/plugin/7642-save-actions">Jetbrains plugin page</a></li>
-  <li><a href="https://github.com/dubreuia/intellij-plugin-save-actions">Github README</a></li>
-  <li><a href="https://github.com/dubreuia/intellij-plugin-save-actions/issues">Github issues</a></li>
-  <li><a href="https://twitter.com/dubreuia">Twitter</a></li>
-</ul>
-    ]]></description>
-
-    <change-notes><![CDATA[
-<ul>
-  <li>Release notes: <a href="https://github.com/dubreuia/intellij-plugin-save-actions/releases">https://github.com/dubreuia/intellij-plugin-save-actions/releases/tag/v1.6.0</a></li>
-</ul>
-    ]]>
     </change-notes>
-
-    <idea-version since-build="193"/>
-
-    <!-- Other product support activated in plugin page during upload at https://plugins.jetbrains.com -->
+    <idea-version since-build="170" until-build="201.*"/>
     <depends optional="true" config-file="plugin-java.xml">com.intellij.modules.java</depends>
-
     <extensions defaultExtensionNs="com.intellij">
         <projectService serviceImplementation="com.dubreuia.model.Storage"/>
         <projectConfigurable id="settings.saveactions" instance="com.dubreuia.ui.Configuration"/>
     </extensions>
-
     <application-components>
         <component>
             <implementation-class>com.dubreuia.core.component.Component</implementation-class>
         </component>
     </application-components>
-
-    <project-components>
-    </project-components>
-
+    <project-components/>
     <actions>
-        <group id="com.dubreuia.core.action.SaveActionsGroup"
-               text="Save Actions"
-               popup="true">
-            <add-to-group group-id="CodeFormatGroup"
-                          anchor="after"
-                          relative-to-action="RearrangeCode"/>
-
+        <group id="com.dubreuia.core.action.SaveActionsGroup" text="Save Actions" popup="true">
+            <add-to-group group-id="CodeFormatGroup" anchor="after"
+              relative-to-action="RearrangeCode"/>
             <action id="com.dubreuia.core.action.ToggleAction"
-                    class="com.dubreuia.core.action.ToggleAction"
-                    text="Enable Save Actions"
-                    description="Toggle the activation of Save Actions"/>
-
+              class="com.dubreuia.core.action.ToggleAction" text="Enable Save Actions"
+              description="Toggle the activation of Save Actions"/>
             <action id="com.dubreuia.core.action.ShortcutAction"
-                    class="com.dubreuia.core.action.ShortcutAction"
-                    text="Execute Save Actions on shortcut"
-                    description="Executes Save Actions with a shortcut">
-                <keyboard-shortcut keymap="$default"
-                                   first-keystroke="shift ctrl S"/>
+              class="com.dubreuia.core.action.ShortcutAction"
+              text="Execute Save Actions on shortcut"
+              description="Executes Save Actions with a shortcut">
+                <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl S"/>
             </action>
-
             <action id="com.dubreuia.core.action.BatchAction"
-                    class="com.dubreuia.core.action.BatchAction"
-                    text="Execute Save Actions on multiple files"
-                    description="Executes save actions on multiple files">
-            </action>
+              class="com.dubreuia.core.action.BatchAction"
+              text="Execute Save Actions on multiple files"
+              description="Executes save actions on multiple files"/>
         </group>
     </actions>
 </idea-plugin>
